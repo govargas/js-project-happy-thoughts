@@ -16,22 +16,43 @@ export const App = () => {
   };
 
   return (
-    <main className="max-w-md mx-auto p-4">
+    <main className="max-w-lg w-full mx-auto p-4">
       <Form onSubmitThought={addThought} />
 
       {/* Render the list of thoughts */}
       {thoughts.map((msg, i) => (
-        <div
+        <article
           key={i}
-          className="bg-white p-4 rounded-lg shadow mb-4 font-eixample"
+          className="
+            bg-white
+            p-6
+            rounded-xs
+            border
+            shadow-sharp
+            mb-6
+            font-eixample
+          "
         >
-          <p>{msg}</p>
-          <div className="flex items-center justify-between mt-2 text-sm text-gray-500">
+          <p className="text-gray-800 mb-4">{msg}</p>
+          <div className="flex items-center justify-between text-sm text-gray-500">
             {/* Placeholder heart + count */}
-            <span className="bg-pink-100 rounded-full px-2 py-1">❤️ x 0</span>
+            <div className="flex items-center space-x-2">
+              <span
+                className="
+                  w-8 h-8
+                  flex items-center justify-center
+                  rounded-full
+                  bg-gray-200    /* unliked state */
+                "
+              >
+                ❤️
+              </span>
+              <span>x 0</span>
+            </div>
+            {/* Timestamp */}
             <span>just now</span>
           </div>
-        </div>
+        </article>
       ))}
     </main>
   );

@@ -19,12 +19,19 @@ const Form = ({ onSubmitThought }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-gray-100 p-6 rounded-lg shadow-md mb-6"
+      className="
+        bg-zinc-100       /* light grey background */
+        p-6                /* inner padding */
+        rounded-xs        /* subtle rounded corners */
+        border
+        shadow-sharp
+        mb-8               /* space below */
+      "
     >
 
       <label
         htmlFor="happy-input"
-        className="block mb-2 text-lg font-ivymode"
+        className="block mb-2 bg-zinc-100 text-lg font-ivymode"
       >
         What’s making you happy right now?
       </label>
@@ -36,12 +43,29 @@ const Form = ({ onSubmitThought }) => {
         maxLength={140}
         rows={3}
         placeholder="Type your happy thought here…"
-        className="w-full border border-gray-300 rounded p-2 mb-4 font-eixample resize-none"
+        className="
+          w-full
+          border border-gray-300
+          p-3
+          mb-2
+          bg-white
+          font-eixample
+          resize-none
+          ring-1 ring-stone-300
+          focus:outline-none focus:ring-2 focus:ring-pink-200
+        "
       />
 
       <button
         type="submit"
-        className="block mx-auto bg-pink-500 hover:bg-pink-600 text-white font-ivymode px-6 py-2 rounded-full"
+        className="
+          bg-rose-300 hover:bg-pink-400
+          text-black
+          font-ivymode
+          px-8 py-2
+          rounded-full
+          tracking-wide
+        "
       >
         ❤️ Send Happy Thought ❤️
       </button>

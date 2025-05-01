@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@layer utilities {
+  .shadow-sharp {
+    /* 9px right, 10px down, no blur, solid black */
+    box-shadow: 9px 10px 0 0 #000;
+  }
+}
+
 .font-ivymode {
   font-family: ivymode, sans-serif;
 }
