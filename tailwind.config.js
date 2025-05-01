@@ -7,7 +7,10 @@ export default defineConfig({
   ],
   theme: {
     extend: {
-      // (fonts will go here later)
+      fontFamily: {
+        ivymode: ['ivymode', 'sans-serif'],
+        eixample: ['eixample-dip', 'sans-serif'],
+      },
     },
   },
   plugins: [],

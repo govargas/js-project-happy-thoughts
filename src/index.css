@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+.font-ivymode {
+  font-family: ivymode, sans-serif;
+}
+
+.font-eixample {
+  font-family: eixample-dip, sans-serif;
 }
