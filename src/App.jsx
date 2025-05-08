@@ -10,10 +10,20 @@ export const App = () => {
     JSON.parse(localStorage.getItem('happy-likes') || '[]')
   )
 
-  // Called when Form submits a new thought
-  const addThought = (newMessage) => {
-    setThoughts([newMessage, ...thoughts]);
-  };
+  useEffect(() => {
+    fetch('https://happy-thoughts-ux7hkzgmwa-uc.a.run.app/thoughts')
+      .then(res => res.json())
+      .then(data => {
+        setThoughts(data)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const addThought = (newThought) => {
+    setThoughts([newThought, ...thoughts])
+  }
+
 
   return (
     <main className="max-w-lg w-full mx-auto p-4">
