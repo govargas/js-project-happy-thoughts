@@ -7,6 +7,7 @@ const Form = ({ onSubmitThought }) => {
 
   const handleChange = (e) => {
     setMessage(e.target.value);
+    setError(null);
   };
 
   const handleSubmit = (e) => {
