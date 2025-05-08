@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 
 const Form = ({ onSubmitThought }) => {
   const [message, setMessage] = useState('');
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setMessage(e.target.value);
