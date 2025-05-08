@@ -12,12 +12,12 @@ const Form = ({ onSubmitThought }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Basic validation: not empty and <= 140 chars
-    if (message.trim() && message.length <= 140) {
-      onSubmitThought(message.trim());
-      setMessage('');
-    }
-  };
+
+   // Simple client‐side validation
+    if (message.trim().length < 5 || message.trim().length > 140) {
+      setError('Message must be 5–140 characters.');
+      return;
+    };
 
   return (
     <form
