@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Form from './components/Form.jsx';
+import ThoughtCard from './components/ThoughtCard.jsx'
 
 export const App = () => {
   // State array of strings for now
