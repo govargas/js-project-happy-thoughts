@@ -3,13 +3,12 @@ import Form from './components/Form.jsx';
 import ThoughtCard from './components/ThoughtCard.jsx'
 
 export const App = () => {
-  // State array of strings for now
-  const [thoughts, setThoughts] = useState([
-    // dummy placeholders while I build out the list
-    'I’m happy because we just moved into a new apartment!',
-    'It’s my birthday!!!',
-    'I’m happy because the sun is out :)'
-  ]);
+  const [thoughts, setThoughts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [likedIds, setLikedIds] = useState(() =>
+    // read once on mount; default to an empty array
+    JSON.parse(localStorage.getItem('happy-likes') || '[]')
+  )
 
   // Called when Form submits a new thought
   const addThought = (newMessage) => {
