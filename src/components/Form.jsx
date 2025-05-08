@@ -91,6 +91,7 @@ const Form = ({ onSubmitThought }) => {
 
       <button
         type="submit"
+        disabled={submitting}
         className="
           bg-rose-300 hover:bg-pink-400
           text-black
@@ -100,7 +101,7 @@ const Form = ({ onSubmitThought }) => {
           tracking-wide
         "
       >
-        ❤️ Send Happy Thought ❤️
+        {submitting ? 'Sending…' : '❤️ Send Happy Thought ❤️'}
       </button>
     </form>
   );
