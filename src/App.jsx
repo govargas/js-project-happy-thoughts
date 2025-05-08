@@ -24,6 +24,28 @@ export const App = () => {
     setThoughts([newThought, ...thoughts])
   }
 
+  const handleLike = (id) => {
+    // prevent double-likes
+    if (likedIds.includes(id)) return
+
+    // in handleLike(id):
+    fetch(`https://happy-thoughts-ux7hkzgmwa-uc.a.run.app/thoughts/${id}/like`, {
+      method: 'POST'
+    })
+      .then(res => res.json())
+      .then(updated => {
+        // update hearts in state
+        setThoughts(ts =>
+          ts.map(t => (t._id === id ? updated : t))
+        )
+        // record that this user liked it
+        setLikedIds(prev => {
+          const next = [...prev, id]
+          localStorage.setItem('happy-likes', JSON.stringify(next))
+          return next
+        })
+      })
+  }
 
   return (
     <main className="max-w-lg w-full mx-auto p-4">
