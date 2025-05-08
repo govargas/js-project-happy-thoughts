@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import Form from './components/Form.jsx';
+import React, { useState, useEffect } from 'react'
+import Form from './components/Form.jsx'
 import ThoughtCard from './components/ThoughtCard.jsx'
 
 export const App = () => {
   const [thoughts, setThoughts] = useState([])
   const [loading, setLoading] = useState(true)
   const [likedIds, setLikedIds] = useState(() =>
-    // read once on mount; default to an empty array
     JSON.parse(localStorage.getItem('happy-likes') || '[]')
   )
 
@@ -28,7 +27,6 @@ export const App = () => {
     // prevent double-likes
     if (likedIds.includes(id)) return
 
-    // in handleLike(id):
     fetch(`https://happy-thoughts-ux7hkzgmwa-uc.a.run.app/thoughts/${id}/like`, {
       method: 'POST'
     })
@@ -49,43 +47,20 @@ export const App = () => {
 
   return (
     <main className="max-w-lg w-full mx-auto p-4">
+      {loading && <p className="text-center">Loading thoughts…</p>}
       <Form onSubmitThought={addThought} />
-
-      {/* Render the list of thoughts, might move later to a "ThoughtsCard.jsx" or similar */}
-      {thoughts.map((msg, i) => (
-        <article
-          key={i}
-          className="
-            bg-white
-            p-6
-            rounded-xs
-            border
-            shadow-sharp
-            mb-6
-            font-eixample
-          "
-        >
-          <p className="text-gray-800 mb-4">{msg}</p>
-          <div className="flex items-center justify-between text-sm text-gray-500">
-            {/* Placeholder heart + count */}
-            <div className="flex items-center space-x-2">
-              <span
-                className="
-                  w-8 h-8
-                  flex items-center justify-center
-                  rounded-full
-                  bg-gray-200    /* unliked state */
-                "
-              >
-                ❤️
-              </span>
-              <span>x 0</span>
-            </div>
-            {/* Timestamp */}
-            <span>just now</span>
-          </div>
-        </article>
-      ))}
+      {!loading &&
+        thoughts.map(th => (
+          <ThoughtCard
+            key={th._id}
+            id={th._id}
+            message={th.message}
+            hearts={th.hearts}
+            createdAt={th.createdAt}
+            onLike={handleLike}
+            isLiked={likedIds.includes(th._id)}
+          />
+        ))}
     </main>
-  );
-};
+  )
+}
