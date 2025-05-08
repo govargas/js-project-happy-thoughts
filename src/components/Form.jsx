@@ -13,11 +13,38 @@ const Form = ({ onSubmitThought }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-   // Simple client‐side validation
+    // Simple client‐side validation
     if (message.trim().length < 5 || message.trim().length > 140) {
       setError('Message must be 5–140 characters.');
       return;
-    };
+    }
+
+    setSubmitting(true);
+
+    fetch('https://happy-thoughts-ux7hkzgmwa-uc.a.run.app/thoughts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: message.trim() })
+    })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((data) => {
+            throw new Error(data.message || 'Failed to send');
+          });
+        }
+        return res.json();
+      })
+      .then((newThought) => {
+        onSubmitThought(newThought);  // pass the full object up
+        setMessage('');               // clear textarea
+      })
+      .catch((err) => {
+        setError(err.message);
+      })
+      .finally(() => {
+        setSubmitting(false);
+      });
+  };
 
   return (
     <form
@@ -43,6 +70,7 @@ const Form = ({ onSubmitThought }) => {
         id="happy-input"
         value={message}
         onChange={handleChange}
+        disabled={submitting}
         maxLength={140}
         rows={3}
         placeholder="Type your happy thought here…"
@@ -58,6 +86,8 @@ const Form = ({ onSubmitThought }) => {
           focus:outline-none focus:ring-2 focus:ring-pink-200
         "
       />
+
+      {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 
       <button
         type="submit"
