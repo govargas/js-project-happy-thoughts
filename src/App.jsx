@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Form from './components/Form.jsx';
 
 export const App = () => {
@@ -19,7 +19,7 @@ export const App = () => {
     <main className="max-w-lg w-full mx-auto p-4">
       <Form onSubmitThought={addThought} />
 
-      {/* Render the list of thoughts */}
+      {/* Render the list of thoughts, might move later to a "ThoughtsCard.jsx" or similar */}
       {thoughts.map((msg, i) => (
         <article
           key={i}
