@@ -86,7 +86,7 @@ const Form = ({ onSubmitThought }) => {
           focus:outline-none focus:ring-2 focus:ring-pink-200
         "
       />
-      <p className={`${message.length >= 140 ? 'text-red-500' : 'text-gray-500'} text-right text-sm`}>{140 - message.length} characters remaining</p>
+      <p className={`${message.length >= 140 ? 'text-red-500' : 'text-gray-500'} text-right text-sm`}>{140 - message.length}/140</p>
 
       {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 

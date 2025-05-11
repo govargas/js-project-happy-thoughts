@@ -5,6 +5,7 @@ import ThoughtCard from './components/ThoughtCard.jsx'
 export const App = () => {
   const [thoughts, setThoughts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [lastAddedId, setLastAddedId] = useState(null);
   const [likedIds, setLikedIds] = useState(() =>
     JSON.parse(localStorage.getItem('happy-likes') || '[]')
   )
@@ -20,7 +21,8 @@ export const App = () => {
   }, [])
 
   const addThought = (newThought) => {
-    setThoughts([newThought, ...thoughts])
+    setThoughts([newThought, ...thoughts]);
+    setLastAddedId(newThought._id);
   }
 
 const handleLike = (id) => {
@@ -70,6 +72,7 @@ const handleLike = (id) => {
             createdAt={th.createdAt}
             onLike={handleLike}
             isLiked={likedIds.includes(th._id)}
+            isNew={th._id === lastAddedId}
           />
         ))}
     </main>
