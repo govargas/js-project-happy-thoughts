@@ -1,6 +1,6 @@
 # Happy Thoughts
 
-**Live Demo:** [https://happythoughtstalo.netlify.app](https://happythoughtstalo.netlify.app)
+**Live Demo:** [https://happythoughtstalo.netlify.app/](https://happythoughtstalo.netlify.app/)
 
 ---
 
