@@ -20,6 +20,12 @@ const ThoughtCard = ({ id, message, hearts, createdAt, onLike, isLiked, isNew })
           <button
             onClick={handleClick}
             disabled={isLiked}
+            aria-label={
+              isLiked
+                ? `You have liked this thought (${hearts} likes)`
+                : `Like this thought (${hearts} likes)`
+            }
+            aria-pressed={isLiked}
             className={`w-8 h-8 flex items-center justify-center rounded-full ${
               isLiked
                 ? 'bg-pink-200 cursor-default'

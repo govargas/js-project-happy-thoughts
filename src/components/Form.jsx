@@ -85,10 +85,20 @@ const Form = ({ onSubmitThought }) => {
           ring-1 ring-stone-300
           focus:outline-none focus:ring-2 focus:ring-pink-200
         "
+        aria-invalid={error ? "true" : "false"}
+        aria-describedby={error ? "error-message" : undefined}
       />
       <p className={`${message.length >= 140 ? 'text-red-500' : 'text-gray-500'} text-right text-sm`}>{140 - message.length}/140</p>
 
-      {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+      {error && (
+        <p
+          id="error-message"
+          role="alert"
+          className="text-red-500 text-sm mb-2"
+        >
+          {error}
+        </p>
+      )}
 
       <button
         type="submit"
