@@ -23,27 +23,38 @@ export const App = () => {
     setThoughts([newThought, ...thoughts])
   }
 
-  const handleLike = (id) => {
-    // prevent double-likes
-    if (likedIds.includes(id)) return
+const handleLike = (id) => {
+  // Prevent double‐likes
+  if (likedIds.includes(id)) return;
 
-    fetch(`https://happy-thoughts-ux7hkzgmwa-uc.a.run.app/thoughts/${id}/like`, {
-      method: 'POST'
+    // POST to the like endpoint
+  fetch(`https://happy-thoughts-ux7hkzgmwa-uc.a.run.app/thoughts/${id}/like`, {
+    method: 'POST'
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error('Could not register like');
+      }
+      return res.json(); // Parse the updated thought object
     })
-      .then(res => res.json())
-      .then(updated => {
-        // update hearts in state
-        setThoughts(ts =>
-          ts.map(t => (t._id === id ? updated : t))
+    .then((updatedThought) => {
+      // Update the hearts count in state
+      setThoughts((prev) =>
+        prev.map((th) =>
+          th._id === id ? updatedThought : th
         )
-        // record that this user liked it
-        setLikedIds(prev => {
-          const next = [...prev, id]
-          localStorage.setItem('happy-likes', JSON.stringify(next))
-          return next
-        })
-      })
-  }
+      );
+      // Record this ID in localStorage to prevent further likes
+      setLikedIds((prev) => {
+        const next = [...prev, id];
+        localStorage.setItem('happy-likes', JSON.stringify(next));
+        return next;
+      });
+    })
+    .catch((err) => {
+      console.error('Like failed:', err);
+    });
+};
 
   return (
     <main className="max-w-lg w-full mx-auto p-4">
