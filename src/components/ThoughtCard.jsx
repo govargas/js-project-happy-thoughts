@@ -5,16 +5,31 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 dayjs.extend(relativeTime)
 
 const ThoughtCard = ({ id, message, hearts, createdAt, onLike, isLiked, isNew }) => {
-  const handleClick = () => onLike(id);
+  // Perform POST here, then hand result back up
+  const handleClick = () => {
+    if (isLiked) return
+
+    fetch(`https://happy-thoughts-ux7hkzgmwa-uc.a.run.app/thoughts/${id}/like`, {
+      method: 'POST'
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Could not register like')
+        return res.json()
+      })
+      .then((updatedThought) => {
+        onLike(updatedThought)  // passes updated object to App
+      })
+      .catch((err) => console.error('Like failed:', err))
+  }
 
   return (
     <article
-      className={`
-        bg-white p-6 rounded-xs shadow-sharp mb-6 border font-eixample
-        ${isNew ? 'animate-fade-in' : ''}
-      `}
+      className={`bg-white p-6 rounded-xs shadow-sharp mb-6 border font-eixample ${
+        isNew ? 'animate-fade-in' : ''
+      }`}
     >
       <p className="text-gray-800 mb-4 break-words whitespace-normal">{message}</p>
+
       <div className="flex items-center justify-between text-sm text-gray-500">
         <div className="flex items-center space-x-2">
           <button
@@ -36,6 +51,7 @@ const ThoughtCard = ({ id, message, hearts, createdAt, onLike, isLiked, isNew })
           </button>
           <span>x {hearts}</span>
         </div>
+
         <span>{dayjs(createdAt).fromNow()}</span>
       </div>
     </article>

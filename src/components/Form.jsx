@@ -71,7 +71,7 @@ const Form = ({ onSubmitThought }) => {
         value={message}
         onChange={handleChange}
         disabled={submitting}
-        minLength={3}
+        minLength={5}
         maxLength={140}
         rows={3}
         placeholder="Type your happy thought here…"
