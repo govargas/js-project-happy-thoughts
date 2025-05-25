@@ -14,7 +14,7 @@ const ThoughtCard = ({ id, message, hearts, createdAt, onLike, isLiked, isNew })
         ${isNew ? 'animate-fade-in' : ''}
       `}
     >
-      <p className="text-gray-800 mb-4">{message}</p>
+      <p className="text-gray-800 mb-4 break-words whitespace-normal">{message}</p>
       <div className="flex items-center justify-between text-sm text-gray-500">
         <div className="flex items-center space-x-2">
           <button
