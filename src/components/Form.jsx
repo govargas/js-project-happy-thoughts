@@ -21,7 +21,7 @@ const Form = ({ onSubmitThought }) => {
 
     setSubmitting(true);
 
-    fetch('https://happy-thoughts-ux7hkzgmwa-uc.a.run.app/thoughts', {
+    fetch('https://happy-thoughts-api-4ful.onrender.com/thoughts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: message.trim() })

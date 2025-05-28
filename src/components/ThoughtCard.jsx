@@ -9,7 +9,7 @@ const ThoughtCard = ({ id, message, hearts, createdAt, onLike, isLiked, isNew })
   const handleClick = () => {
     if (isLiked) return
 
-    fetch(`https://happy-thoughts-ux7hkzgmwa-uc.a.run.app/thoughts/${id}/like`, {
+    fetch(`https://happy-thoughts-api-4ful.onrender.com/thoughts/${id}/like`, {
       method: 'POST'
     })
       .then((res) => {
