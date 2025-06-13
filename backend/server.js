@@ -17,8 +17,15 @@ mongoose
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch((err) => console.error('❌ MongoDB connection error:', err))
 
-// Middleware
-app.use(cors())
+// CORS: only allow our frontend origins
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://happythoughtstalo.netlify.app'
+  ]
+}))
+
+// JSON body parsing
 app.use(express.json())
 
 // 1) API documentation & welcome message
