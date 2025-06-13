@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import Form from './components/Form.jsx'
 import ThoughtCard from './components/ThoughtCard.jsx'
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export const App = () => {
   const [thoughts, setThoughts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -12,7 +14,7 @@ export const App = () => {
 
   // Fetch on mount
   useEffect(() => {
-    fetch('https://happy-thoughts-api-4ful.onrender.com/thoughts')
+    fetch(`${API_URL}/thoughts`)
       .then(res => res.json())
       .then(data => {
         setThoughts(data)
