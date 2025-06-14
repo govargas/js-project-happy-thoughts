@@ -1,120 +1,137 @@
-import express from 'express'
-import cors from 'cors'
-import listEndpoints from 'express-list-endpoints'
-import dotenv from 'dotenv'
-import mongoose from 'mongoose'
-import Thought from './models/Thought.js'
+import express from "express";
+import cors from "cors";
+import listEndpoints from "express-list-endpoints";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import Thought from "./models/Thought.js";
 
-dotenv.config()
+dotenv.config();
 
-const app = express()
-const PORT = process.env.PORT || 8080
+const app = express();
+const PORT = process.env.PORT || 8080;
 
 // Connect to MongoDB
-const mongoUrl = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/happythoughts'
+const mongoUrl =
+  process.env.MONGO_URL || "mongodb://127.0.0.1:27017/happythoughts";
 mongoose
   .connect(mongoUrl)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch((err) => console.error('❌ MongoDB connection error:', err))
+  .then(() => console.log("✅ Connected to MongoDB"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // CORS: only allow our frontend origins
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://happythoughtstalo.netlify.app'
-  ]
-}))
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://happythoughtstalo.netlify.app"],
+  })
+);
 
 // JSON body parsing
-app.use(express.json())
+app.use(express.json());
 
 // 1) API documentation & welcome message
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.json({
-    message: 'Welcome to the Happy Thoughts API',
-    endpoints: listEndpoints(app)
-  })
-})
+    message: "Welcome to the Happy Thoughts API",
+    endpoints: listEndpoints(app),
+  });
+});
 
-// 2) Collection endpoint: get all thoughts, optional filter by hearts
-app.get('/thoughts', async (req, res, next) => {
+// 2) Collection endpoint: paginated, filtered & sorted
+app.get("/thoughts", async (req, res, next) => {
   try {
-    const { hearts } = req.query
-    const filter = hearts ? { hearts: Number(hearts) } : {}
-    const thoughts = await Thought.find(filter).sort({ createdAt: -1 })
-    res.status(200).json(thoughts)
+    // Parse query params, with sensible defaults
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit, 10) || 20);
+    const heartsFilter = req.query.hearts != null
+      ? { hearts: Number(req.query.hearts) }
+      : {};
+
+    // Count total matching documents
+    const totalCount = await Thought.countDocuments(heartsFilter);
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Fetch the requested page
+    const thoughts = await Thought.find(heartsFilter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    // Return data + pagination meta
+    res.status(200).json({
+      meta: { page, limit, totalCount, totalPages },
+      thoughts
+    });
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
 // 3) Single‐item endpoint: get one thought by ID
-app.get('/thoughts/:id', async (req, res, next) => {
+app.get("/thoughts/:id", async (req, res, next) => {
   try {
-    const thought = await Thought.findById(req.params.id)
+    const thought = await Thought.findById(req.params.id);
     if (!thought) {
       return res
         .status(404)
-        .json({ error: `Thought with ID '${req.params.id}' not found` })
+        .json({ error: `Thought with ID '${req.params.id}' not found` });
     }
-    res.status(200).json(thought)
+    res.status(200).json(thought);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
 // 4) Create a new thought
-app.post('/thoughts', async (req, res, next) => {
+app.post("/thoughts", async (req, res, next) => {
   try {
-    const { message } = req.body
-    const newThought = new Thought({ message })
-    const savedThought = await newThought.save()
-    res.status(201).json(savedThought)
+    const { message } = req.body;
+    const newThought = new Thought({ message });
+    const savedThought = await newThought.save();
+    res.status(201).json(savedThought);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
 // 5) Update a thought (edit message or hearts)
-app.put('/thoughts/:id', async (req, res, next) => {
+app.put("/thoughts/:id", async (req, res, next) => {
   try {
-    const updated = await Thought.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    )
+    const updated = await Thought.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
     if (!updated) {
       return res
         .status(404)
-        .json({ error: `Thought with ID '${req.params.id}' not found` })
+        .json({ error: `Thought with ID '${req.params.id}' not found` });
     }
-    res.json(updated)
+    res.json(updated);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
 // 6) Delete a thought
-app.delete('/thoughts/:id', async (req, res, next) => {
+app.delete("/thoughts/:id", async (req, res, next) => {
   try {
-    const deleted = await Thought.findByIdAndDelete(req.params.id)
+    const deleted = await Thought.findByIdAndDelete(req.params.id);
     if (!deleted) {
       return res
         .status(404)
-        .json({ error: `Thought with ID '${req.params.id}' not found` })
+        .json({ error: `Thought with ID '${req.params.id}' not found` });
     }
-    res.json({ success: true, deletedId: req.params.id })
+    res.json({ success: true, deletedId: req.params.id });
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
 // Error handler
 app.use((err, req, res, next) => {
-  res.status(400).json({ error: err.message })
-})
+  res.status(400).json({ error: err.message });
+});
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`)
-})
+  console.log(`Server running on http://localhost:${PORT}`);
+});
