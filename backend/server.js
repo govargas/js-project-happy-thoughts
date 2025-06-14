@@ -52,13 +52,18 @@ app.get("/thoughts", async (req, res, next) => {
       filter.hearts = { $gte: Number(minHearts) };
     }
 
+    // Parse sort parameters: field and direction
+    const { sortBy, order } = req.query;
+    const field = sortBy === 'hearts' ? 'hearts' : 'createdAt';
+    const direction = order === 'asc' ? 1 : -1;
+
     // Count total matching documents
     const totalCount = await Thought.countDocuments(filter);
     const totalPages = Math.ceil(totalCount / limit);
 
     // Fetch the requested page
     const thoughts = await Thought.find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ [field]: direction })
       .skip((page - 1) * limit)
       .limit(limit);
 

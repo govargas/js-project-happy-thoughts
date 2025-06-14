@@ -14,6 +14,7 @@ export const App = () => {
   const [page, setPage] = useState(1)
   const [meta, setMeta] = useState({})
   const [minHearts, setMinHearts] = useState('')
+  const [sortParam, setSortParam] = useState('createdAt_desc')
 
   // Fetch on mount and page change
   useEffect(() => {
@@ -21,6 +22,10 @@ export const App = () => {
     let url = `${API_URL}/thoughts?page=${page}&limit=20`
     if (minHearts) {
       url += `&minHearts=${minHearts}`
+    }
+    if (sortParam) {
+      const [field, dir] = sortParam.split('_')
+      url += `&sortBy=${field}&order=${dir}`
     }
     fetch(url)
       .then(res => res.json())
@@ -33,7 +38,7 @@ export const App = () => {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [page, minHearts])
+  }, [page, minHearts, sortParam])
 
   // Add new thought & trigger entry animation
   const addThought = (newThought) => {
@@ -108,6 +113,22 @@ export const App = () => {
           placeholder="0"
           className="border p-1 rounded text-sm"
         />
+      </div>
+
+      <div className="mb-4 flex items-center space-x-2">
+        <label htmlFor="sort-by" className="font-ivymode">Sort by:</label>
+        <select
+          id="sort-by"
+          value={sortParam}
+          onChange={e => {
+            setSortParam(e.target.value)
+            setPage(1)
+          }}
+          className="border p-1 rounded text-sm"
+        >
+          <option value="createdAt_desc">Newest first</option>
+          <option value="hearts_desc">Most liked first</option>
+        </select>
       </div>
 
       {!loading &&
