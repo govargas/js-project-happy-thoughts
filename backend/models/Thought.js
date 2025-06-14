@@ -5,9 +5,10 @@ const { Schema, model } = mongoose
 const ThoughtSchema = new Schema({
   message: {
     type: String,
-    required: true,
-    minlength: 5,
-    maxlength: 140
+    required: [true, 'Message is required'],
+    minlength: [5, 'Message must be at least 5 characters'],
+    maxlength: [140, 'Message must be at most 140 characters'],
+    trim: true
   },
   hearts: {
     type: Number,

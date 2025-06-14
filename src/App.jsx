@@ -17,7 +17,7 @@ export const App = () => {
     fetch(`${API_URL}/thoughts`)
       .then(res => res.json())
       .then(data => {
-        setThoughts(data)
+        setThoughts(data.thoughts ?? data)
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -48,6 +48,33 @@ export const App = () => {
     })
   }
 
+  const handleDelete = (id) => {
+    fetch(`${API_URL}/thoughts/${id}`, { method: 'DELETE' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Delete failed');
+        setThoughts((prev) => prev.filter((th) => th._id !== id));
+        const nextLiked = likedIds.filter((lid) => lid !== id);
+        setLikedIds(nextLiked);
+        localStorage.setItem('happy-likes', JSON.stringify(nextLiked));
+      })
+      .catch(console.error);
+  };
+
+  const handleUpdate = (id, newMessage) => {
+    fetch(`${API_URL}/thoughts/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: newMessage })
+    })
+      .then((res) => res.json())
+      .then((updated) => {
+        setThoughts((prev) =>
+          prev.map((th) => (th._id === id ? updated : th))
+        );
+      })
+      .catch(console.error);
+  };
+
   return (
     <main className="max-w-lg w-full mx-auto p-4">
       {loading && <p className="text-center">Loading thoughts…</p>}
@@ -65,6 +92,8 @@ export const App = () => {
             onLike={handleLike} // now expects full object
             isLiked={likedIds.includes(th._id)}
             isNew={th._id === lastAddedId}
+            onDelete={handleDelete}
+            onUpdate={handleUpdate}
           />
         ))}
     </main>

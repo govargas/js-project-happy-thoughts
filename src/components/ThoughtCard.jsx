@@ -1,36 +1,59 @@
-import React from 'react'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
+import React from 'react';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 
-dayjs.extend(relativeTime)
+dayjs.extend(relativeTime);
 
-const ThoughtCard = ({ id, message, hearts, createdAt, onLike, isLiked, isNew }) => {
-  // Perform POST here, then hand result back up
+const ThoughtCard = ({
+  id,
+  message,
+  hearts,
+  createdAt,
+  onLike,
+  onDelete,
+  onUpdate,
+  isLiked,
+  isNew
+}) => {
   const handleClick = () => {
-    if (isLiked) return
+    if (isLiked) return;
+    onLike(id);
+  };
 
-    fetch(`https://happy-thoughts-api-4ful.onrender.com/thoughts/${id}/like`, {
-      method: 'POST'
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Could not register like')
-        return res.json()
-      })
-      .then((updatedThought) => {
-        onLike(updatedThought)  // passes updated object to App
-      })
-      .catch((err) => console.error('Like failed:', err))
-  }
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this thought?')) {
+      onDelete(id);
+    }
+  };
+
+  const handleEdit = () => {
+    const newMsg = window.prompt('Edit your thought:', message);
+    if (newMsg != null) {
+      const trimmed = newMsg.trim();
+      if (trimmed.length >= 5 && trimmed.length <= 140) {
+        onUpdate(id, trimmed);
+      } else {
+        window.alert('Thought must be between 5 and 140 characters.');
+      }
+    }
+  };
 
   return (
-    <article
-      className={`bg-white p-6 rounded-xs shadow-sharp mb-6 border font-eixample ${
-        isNew ? 'animate-fade-in' : ''
-      }`}
-    >
-      <p className="text-gray-800 mb-4 break-words whitespace-normal">{message}</p>
-
-      <div className="flex items-center justify-between text-sm text-gray-500">
+    <article className={`bg-white p-6 rounded-xs shadow-sharp mb-6 border font-eixample ${isNew ? 'animate-fade-in' : ''}`}>
+      <div className="flex justify-between items-start">
+        <p className="text-gray-800 mb-4 break-words whitespace-normal flex-1">
+          {message}
+        </p>
+        <div className="space-x-2">
+          <button onClick={handleEdit} aria-label="Edit thought" className="text-blue-600 hover:underline text-sm">
+            Edit
+          </button>
+          <button onClick={handleDelete} aria-label="Delete thought" className="text-red-600 hover:underline text-sm">
+            Delete
+          </button>
+        </div>
+      </div>
+      <div className="flex items-center justify-between text-sm text-gray-500 mt-2">
         <div className="flex items-center space-x-2">
           <button
             onClick={handleClick}
@@ -51,11 +74,10 @@ const ThoughtCard = ({ id, message, hearts, createdAt, onLike, isLiked, isNew })
           </button>
           <span>x {hearts}</span>
         </div>
-
         <span>{dayjs(createdAt).fromNow()}</span>
       </div>
     </article>
-  )
-}
+  );
+};
 
-export default ThoughtCard
+export default ThoughtCard;
