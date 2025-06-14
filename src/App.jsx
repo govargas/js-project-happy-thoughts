@@ -40,6 +40,21 @@ export const App = () => {
       .finally(() => setLoading(false))
   }, [page, minHearts, sortParam])
 
+  // Infinite scroll: load next page when near bottom
+  useEffect(() => {
+    const handleScroll = () => {
+      if (loading || page >= meta.totalPages) return;
+      const bottomReached =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.offsetHeight - 100;
+      if (bottomReached) {
+        setPage(prev => prev + 1);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loading, page, meta.totalPages]);
+
   // Add new thought & trigger entry animation
   const addThought = (newThought) => {
     setThoughts(prev => [newThought, ...prev])
@@ -146,16 +161,6 @@ export const App = () => {
             onUpdate={handleUpdate}
           />
         ))}
-      {/* Load More button */}
-      {meta.page < meta.totalPages && (
-        <button
-          onClick={() => setPage(prev => prev + 1)}
-          disabled={loading}
-          className="mt-4 w-full py-2 bg-gray-200 rounded hover:bg-gray-300"
-        >
-          {loading ? 'Loading…' : `Load page ${page + 1}`}
-        </button>
-      )}
     </main>
   )
 }
