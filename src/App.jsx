@@ -11,22 +11,30 @@ export const App = () => {
   const [likedIds, setLikedIds] = useState(() =>
     JSON.parse(localStorage.getItem('happy-likes') || '[]')
   )
+  const [page, setPage] = useState(1)
+  const [meta, setMeta] = useState({})
 
-  // Fetch on mount
+  // Fetch on mount and page change
   useEffect(() => {
-    fetch(`${API_URL}/thoughts`)
+    setLoading(true)
+    fetch(`${API_URL}/thoughts?page=${page}&limit=20`)
       .then(res => res.json())
       .then(data => {
-        setThoughts(data.thoughts ?? data)
-        setLoading(false)
+        const items = data.thoughts ?? data
+        setMeta(data.meta ?? {})
+        setThoughts(prev =>
+          page === 1 ? items : [...prev, ...items]
+        )
       })
-      .catch(() => setLoading(false))
-  }, [])
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [page])
 
   // Add new thought & trigger entry animation
   const addThought = (newThought) => {
-    setThoughts([newThought, ...thoughts])
+    setThoughts(prev => [newThought, ...prev])
     setLastAddedId(newThought._id)
+    setPage(1)
   }
 
   // Receives the updated thought object from child
@@ -96,6 +104,16 @@ export const App = () => {
             onUpdate={handleUpdate}
           />
         ))}
+      {/* Load More button */}
+      {meta.page < meta.totalPages && (
+        <button
+          onClick={() => setPage(prev => prev + 1)}
+          disabled={loading}
+          className="mt-4 w-full py-2 bg-gray-200 rounded hover:bg-gray-300"
+        >
+          {loading ? 'Loading…' : `Load page ${page + 1}`}
+        </button>
+      )}
     </main>
   )
 }
