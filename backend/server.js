@@ -42,16 +42,22 @@ app.get("/thoughts", async (req, res, next) => {
     // Parse query params, with sensible defaults
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = Math.max(1, parseInt(req.query.limit, 10) || 20);
-    const heartsFilter = req.query.hearts != null
-      ? { hearts: Number(req.query.hearts) }
-      : {};
+
+    // Parse hearts filters: exact or minimum
+    const { hearts, minHearts } = req.query;
+    let filter = {};
+    if (hearts != null) {
+      filter.hearts = Number(hearts);
+    } else if (minHearts != null) {
+      filter.hearts = { $gte: Number(minHearts) };
+    }
 
     // Count total matching documents
-    const totalCount = await Thought.countDocuments(heartsFilter);
+    const totalCount = await Thought.countDocuments(filter);
     const totalPages = Math.ceil(totalCount / limit);
 
     // Fetch the requested page
-    const thoughts = await Thought.find(heartsFilter)
+    const thoughts = await Thought.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);

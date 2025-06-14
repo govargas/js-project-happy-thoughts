@@ -13,11 +13,16 @@ export const App = () => {
   )
   const [page, setPage] = useState(1)
   const [meta, setMeta] = useState({})
+  const [minHearts, setMinHearts] = useState('')
 
   // Fetch on mount and page change
   useEffect(() => {
     setLoading(true)
-    fetch(`${API_URL}/thoughts?page=${page}&limit=20`)
+    let url = `${API_URL}/thoughts?page=${page}&limit=20`
+    if (minHearts) {
+      url += `&minHearts=${minHearts}`
+    }
+    fetch(url)
       .then(res => res.json())
       .then(data => {
         const items = data.thoughts ?? data
@@ -28,7 +33,7 @@ export const App = () => {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [page])
+  }, [page, minHearts])
 
   // Add new thought & trigger entry animation
   const addThought = (newThought) => {
@@ -88,6 +93,22 @@ export const App = () => {
       {loading && <p className="text-center">Loading thoughts…</p>}
 
       <Form onSubmitThought={addThought} />
+
+      <div className="mb-4 flex items-center space-x-2">
+        <label htmlFor="min-hearts" className="font-ivymode">Min likes:</label>
+        <input
+          id="min-hearts"
+          type="number"
+          min="0"
+          value={minHearts}
+          onChange={e => {
+            setMinHearts(e.target.value)
+            setPage(1)
+          }}
+          placeholder="0"
+          className="border p-1 rounded text-sm"
+        />
+      </div>
 
       {!loading &&
         thoughts.map((th) => (
