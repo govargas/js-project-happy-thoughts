@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router';
+import { Routes, Route, Navigate, Link } from 'react-router';
 import Form from './components/Form.jsx'
 import ThoughtCard from './components/ThoughtCard.jsx'
 import Login from './pages/Login.jsx';
@@ -18,6 +18,8 @@ export const App = () => {
   const [meta, setMeta] = useState({})
   const [minHearts, setMinHearts] = useState('')
   const [sortParam, setSortParam] = useState('createdAt_desc')
+
+  const token = localStorage.getItem('token');
 
   // Fetch on mount and page change
   useEffect(() => {
@@ -168,12 +170,34 @@ export const App = () => {
   )
 
   return (
-    <Routes>
-      <Route path="/" element={<Feed />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <nav className="flex justify-between mb-6">
+        <Link to="/" className="font-ivymode">Home</Link>
+        <div className="space-x-4">
+          {token
+            ? <button
+                onClick={() => {
+                  localStorage.removeItem('token');
+                  window.location.reload();
+                }}
+                className="font-ivymode"
+              >
+                Logout
+              </button>
+            : <>
+                <Link to="/login" className="font-ivymode">Login</Link>
+                <Link to="/register" className="font-ivymode">Register</Link>
+              </>
+          }
+        </div>
+      </nav>
+      <Routes>
+        <Route path="/"    element={<Feed />} />
+        <Route path="/login"    element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   )
 }
 
