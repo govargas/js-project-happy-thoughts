@@ -5,14 +5,16 @@ const API_URL = import.meta.env.VITE_API_URL
 export default function Register() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ username: '', email: '', password: '' })
-  const [errors, setErrors] = useState([])
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [serverError, setServerError] = useState('');
 
   const handleChange = e =>
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
   const handleSubmit = async e => {
     e.preventDefault()
-    setErrors([])
+    setFieldErrors({});
+    setServerError('');
     const res = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -20,8 +22,13 @@ export default function Register() {
     })
     const json = await res.json()
     if (!res.ok) {
-      // errors from express-validator come in json.errors
-      setErrors(json.errors?.map(e => e.msg) ?? [json.error])
+      const errs = json.errors ?? [];
+      const fieldErrs = {};
+      errs.forEach(e => {
+        fieldErrs[e.param] = e.msg;
+      });
+      setFieldErrors(fieldErrs);
+      setServerError(json.error || '');
     } else {
       navigate('/login')
     }
@@ -31,9 +38,7 @@ export default function Register() {
     <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4">
       <h2 className="text-xl mb-4">Register</h2>
 
-      {errors.map((m,i) => (
-        <p key={i} className="text-red-500 text-sm">{m}</p>
-      ))}
+      {serverError && <p className="text-red-500 text-sm mb-2">{serverError}</p>}
 
       <label className="block mb-2">
         Username
@@ -43,6 +48,7 @@ export default function Register() {
           onChange={handleChange}
           className="w-full border p-2"
         />
+        {fieldErrors.username && <p className="text-red-500 text-sm">{fieldErrors.username}</p>}
       </label>
       <label className="block mb-2">
         Email
@@ -53,6 +59,7 @@ export default function Register() {
           onChange={handleChange}
           className="w-full border p-2"
         />
+        {fieldErrors.email && <p className="text-red-500 text-sm">{fieldErrors.email}</p>}
       </label>
       <label className="block mb-4">
         Password
@@ -63,6 +70,7 @@ export default function Register() {
           onChange={handleChange}
           className="w-full border p-2"
         />
+        {fieldErrors.password && <p className="text-red-500 text-sm">{fieldErrors.password}</p>}
       </label>
 
       <button type="submit" className="bg-blue-500 text-white px-4 py-2">
