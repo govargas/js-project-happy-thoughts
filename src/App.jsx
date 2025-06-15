@@ -133,7 +133,10 @@ export const App = () => {
         thoughts.map(th => (
           <ThoughtCard
             key={th._id}
-            {...th}
+            id={th._id}
+            message={th.message}
+            hearts={th.hearts}
+            createdAt={th.createdAt}
             onLike={handleLike}
             onDelete={handleDelete}
             onUpdate={handleUpdate}
