@@ -4,11 +4,15 @@ import listEndpoints from "express-list-endpoints";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import Thought from "./models/Thought.js";
+import { body, validationResult } from "express-validator";
+import jwt from "jsonwebtoken";
+import User from "./models/User.js";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+const JWT_SECRET = process.env.JWT_SECRET || "jwt_secret_here";
 
 // Connect to MongoDB
 const mongoUrl =
@@ -27,6 +31,57 @@ app.use(
 
 // JSON body parsing
 app.use(express.json());
+
+// Register route
+app.post(
+  "/auth/register",
+  body("username").isLength({ min: 3 }),
+  body("password").isLength({ min: 6 }),
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      const { username, password } = req.body;
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+      const user = new User({ username, password });
+      await user.save();
+      res.status(201).json({ message: "User registered successfully" });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// Login route
+app.post(
+  "/auth/login",
+  body("username").exists(),
+  body("password").exists(),
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      const { username, password } = req.body;
+      const user = await User.findOne({ username });
+      if (!user || !(await user.comparePassword(password))) {
+        return res.status(401).json({ error: "Invalid username or password" });
+      }
+      const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, {
+        expiresIn: "1h",
+      });
+      res.json({ token });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 // 1) API documentation & welcome message
 app.get("/", (req, res) => {
