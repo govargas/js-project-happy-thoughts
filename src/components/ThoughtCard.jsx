@@ -1,10 +1,12 @@
-import React from 'react';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
+import React from 'react'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 
-dayjs.extend(relativeTime);
+dayjs.extend(relativeTime)
 
-const ThoughtCard = ({
+const API_URL = import.meta.env.VITE_API_URL
+
+export default function ThoughtCard({
   id,
   message,
   hearts,
@@ -14,41 +16,92 @@ const ThoughtCard = ({
   onUpdate,
   isLiked,
   isNew
-}) => {
-  const handleClick = () => {
-    if (isLiked) return;
-    onLike(id);
-  };
+}) {
+  const token = localStorage.getItem('token')
+
+  const handleLike = () => {
+    if (isLiked) return
+
+    fetch(`${API_URL}/thoughts/${id}/like`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Could not register like')
+        return res.json()
+      })
+      .then(updatedThought => {
+        onLike(updatedThought)
+      })
+      .catch(err => console.error('Like failed:', err))
+  }
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this thought?')) {
-      onDelete(id);
-    }
-  };
+    if (!window.confirm('Are you sure you want to delete this thought?')) return
+
+    fetch(`${API_URL}/thoughts/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Delete failed')
+        return res.json()
+      })
+      .then(() => onDelete(id))
+      .catch(err => console.error('Delete failed:', err))
+  }
 
   const handleEdit = () => {
-    const newMsg = window.prompt('Edit your thought:', message);
-    if (newMsg != null) {
-      const trimmed = newMsg.trim();
-      if (trimmed.length >= 5 && trimmed.length <= 140) {
-        onUpdate(id, trimmed);
-      } else {
-        window.alert('Thought must be between 5 and 140 characters.');
-      }
+    const newMsg = window.prompt('Edit your thought:', message)
+    if (newMsg == null) return
+
+    const trimmed = newMsg.trim()
+    if (trimmed.length < 5 || trimmed.length > 140) {
+      window.alert('Thought must be between 5 and 140 characters.')
+      return
     }
-  };
+
+    fetch(`${API_URL}/thoughts/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ message: trimmed })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Update failed')
+        return res.json()
+      })
+      .then(updated => {
+        onUpdate(updated)
+      })
+      .catch(err => console.error('Update failed:', err))
+  }
 
   return (
-    <article className={`bg-white p-6 rounded-xs shadow-sharp mb-6 border font-eixample ${isNew ? 'animate-fade-in' : ''}`}>
+    <article
+      className={`bg-white p-6 rounded-xs shadow-sharp mb-6 border font-eixample ${
+        isNew ? 'animate-fade-in' : ''
+      }`}
+    >
       <div className="flex justify-between items-start">
-        <p className="text-gray-800 mb-4 break-words whitespace-normal flex-1">
+        <p className="text-gray-800 mb-4 flex-1 break-words whitespace-normal">
           {message}
         </p>
         <div className="space-x-2">
-          <button onClick={handleEdit} aria-label="Edit thought" className="text-blue-600 hover:underline text-sm">
+          <button
+            onClick={handleEdit}
+            aria-label="Edit thought"
+            className="text-blue-600 hover:underline text-sm"
+          >
             Edit
           </button>
-          <button onClick={handleDelete} aria-label="Delete thought" className="text-red-600 hover:underline text-sm">
+          <button
+            onClick={handleDelete}
+            aria-label="Delete thought"
+            className="text-red-600 hover:underline text-sm"
+          >
             Delete
           </button>
         </div>
@@ -56,7 +109,7 @@ const ThoughtCard = ({
       <div className="flex items-center justify-between text-sm text-gray-500 mt-2">
         <div className="flex items-center space-x-2">
           <button
-            onClick={handleClick}
+            onClick={handleLike}
             disabled={isLiked}
             aria-label={
               isLiked
@@ -77,7 +130,5 @@ const ThoughtCard = ({
         <span>{dayjs(createdAt).fromNow()}</span>
       </div>
     </article>
-  );
-};
-
-export default ThoughtCard;
+  )
+}

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { Routes, Route, Navigate, Link } from 'react-router';
+import { Routes, Route, Navigate, Link } from 'react-router'
 import Form from './components/Form.jsx'
 import ThoughtCard from './components/ThoughtCard.jsx'
-import Login from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL
 
 export const App = () => {
   const [thoughts, setThoughts] = useState([])
@@ -19,15 +19,13 @@ export const App = () => {
   const [minHearts, setMinHearts] = useState('')
   const [sortParam, setSortParam] = useState('createdAt_desc')
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token')
 
-  // Fetch on mount and page change
+  // Fetch on mount and when filters change
   useEffect(() => {
     setLoading(true)
     let url = `${API_URL}/thoughts?page=${page}&limit=20`
-    if (minHearts) {
-      url += `&minHearts=${minHearts}`
-    }
+    if (minHearts) url += `&minHearts=${minHearts}`
     if (sortParam) {
       const [field, dir] = sortParam.split('_')
       url += `&sortBy=${field}&order=${dir}`
@@ -35,86 +33,61 @@ export const App = () => {
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        // Always treat 'thoughts' as an array
-        const { thoughts: items = [], meta: newMeta = {} } = data;
-        setMeta(newMeta);
-        setThoughts(prev =>
-          page === 1 ? items : [...prev, ...items]
-        );
+        const items = data.response ?? data.thoughts ?? []
+        const newMeta = data.meta ?? {}
+        setMeta(newMeta)
+        setThoughts(prev => (page === 1 ? items : [...prev, ...items]))
       })
-      .catch(err => {
-        console.error('Failed to load thoughts:', err);
-      })
-      .finally(() => setLoading(false));
+      .catch(err => console.error('Failed to load thoughts:', err))
+      .finally(() => setLoading(false))
   }, [page, minHearts, sortParam])
 
-  // Infinite scroll: load next page when near bottom
+  // Infinite scroll
   useEffect(() => {
     const handleScroll = () => {
-      if (loading || page >= meta.totalPages) return;
+      if (loading || page >= meta.totalPages) return
       const bottomReached =
-        window.innerHeight + window.scrollY >=
-        document.documentElement.offsetHeight - 100;
-      if (bottomReached) {
-        setPage(prev => prev + 1);
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [loading, page, meta.totalPages]);
+        window.innerHeight + window.scrollY >= document.documentElement.offsetHeight - 100
+      if (bottomReached) setPage(prev => prev + 1)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [loading, page, meta.totalPages])
 
-  // Add new thought & trigger entry animation
-  const addThought = (newThought) => {
+  const addThought = newThought => {
     setThoughts(prev => [newThought, ...prev])
     setLastAddedId(newThought._id)
     setPage(1)
   }
 
-  // Receives the updated thought object from child
-  const handleLike = (updatedThought) => {
+  const handleLike = updatedThought => {
     const id = updatedThought._id
-    if (likedIds.includes(id)) return
-
-    // Update heart count in state
-    setThoughts((prev) =>
-      prev.map((th) =>
-        th._id === id ? updatedThought : th
-      )
-    )
-    // Persist that the user liked this thought
-    setLikedIds((prev) => {
-      const next = [...prev, id]
+    setThoughts(prev => prev.map(t => (t._id === id ? updatedThought : t)))
+    if (!likedIds.includes(id)) {
+      const next = [...likedIds, id]
+      setLikedIds(next)
       localStorage.setItem('happy-likes', JSON.stringify(next))
-      return next
-    })
+    }
   }
 
-  const handleDelete = (id) => {
-    fetch(`${API_URL}/thoughts/${id}`, { method: 'DELETE' })
-      .then((res) => {
-        if (!res.ok) throw new Error('Delete failed');
-        setThoughts((prev) => prev.filter((th) => th._id !== id));
-        const nextLiked = likedIds.filter((lid) => lid !== id);
-        setLikedIds(nextLiked);
-        localStorage.setItem('happy-likes', JSON.stringify(nextLiked));
-      })
-      .catch(console.error);
-  };
-
-  const handleUpdate = (id, newMessage) => {
+  const handleDelete = id => {
     fetch(`${API_URL}/thoughts/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: newMessage })
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
     })
-      .then((res) => res.json())
-      .then((updated) => {
-        setThoughts((prev) =>
-          prev.map((th) => (th._id === id ? updated : th))
-        );
+      .then(res => {
+        if (!res.ok) throw new Error('Delete failed')
+        setThoughts(prev => prev.filter(t => t._id !== id))
+        const nextLikes = likedIds.filter(l => l !== id)
+        setLikedIds(nextLikes)
+        localStorage.setItem('happy-likes', JSON.stringify(nextLikes))
       })
-      .catch(console.error);
-  };
+      .catch(console.error)
+  }
+
+  const handleUpdate = updated => {
+    setThoughts(prev => prev.map(t => (t._id === updated._id ? updated : t)))
+  }
 
   const Feed = () => (
     <main className="max-w-lg w-full mx-auto p-4">
@@ -122,6 +95,7 @@ export const App = () => {
 
       <Form onSubmitThought={addThought} />
 
+      {/* Filters */}
       <div className="mb-4 flex items-center space-x-2">
         <label htmlFor="min-hearts" className="font-ivymode">Min likes:</label>
         <input
@@ -137,7 +111,6 @@ export const App = () => {
           className="border p-1 rounded text-sm"
         />
       </div>
-
       <div className="mb-4 flex items-center space-x-2">
         <label htmlFor="sort-by" className="font-ivymode">Sort by:</label>
         <select
@@ -154,19 +127,17 @@ export const App = () => {
         </select>
       </div>
 
+      {/* Thought list */}
       {!loading &&
-        thoughts.map((th) => (
+        thoughts.map(th => (
           <ThoughtCard
             key={th._id}
-            id={th._id}
-            message={th.message}
-            hearts={th.hearts}
-            createdAt={th.createdAt}
-            onLike={handleLike} // now expects full object
-            isLiked={likedIds.includes(th._id)}
-            isNew={th._id === lastAddedId}
+            {...th}
+            onLike={handleLike}
             onDelete={handleDelete}
             onUpdate={handleUpdate}
+            isLiked={likedIds.includes(th._id)}
+            isNew={th._id === lastAddedId}
           />
         ))}
     </main>
@@ -177,26 +148,28 @@ export const App = () => {
       <nav className="flex justify-between mb-6">
         <Link to="/" className="font-ivymode">Home</Link>
         <div className="space-x-4">
-          {token
-            ? <button
-                onClick={() => {
-                  localStorage.removeItem('token');
-                  window.location.reload();
-                }}
-                className="font-ivymode"
-              >
-                Logout
-              </button>
-            : <>
-                <Link to="/login" className="font-ivymode">Login</Link>
-                <Link to="/register" className="font-ivymode">Register</Link>
-              </>
-          }
+          {token ? (
+            <button
+              onClick={() => {
+                localStorage.removeItem('token')
+                window.location.reload()
+              }}
+              className="font-ivymode"
+            >
+              Logout
+            </button>
+          ) : (
+            <>
+              <Link to="/login" className="font-ivymode">Login</Link>
+              <Link to="/register" className="font-ivymode">Register</Link>
+            </>
+          )}
         </div>
       </nav>
+
       <Routes>
-        <Route path="/"    element={<Feed />} />
-        <Route path="/login"    element={<Login />} />
+        <Route path="/" element={<Feed />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
