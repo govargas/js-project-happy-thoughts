@@ -35,14 +35,17 @@ export const App = () => {
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        const items = data.thoughts ?? data
-        setMeta(data.meta ?? {})
+        // Always treat 'thoughts' as an array
+        const { thoughts: items = [], meta: newMeta = {} } = data;
+        setMeta(newMeta);
         setThoughts(prev =>
           page === 1 ? items : [...prev, ...items]
-        )
+        );
       })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+      .catch(err => {
+        console.error('Failed to load thoughts:', err);
+      })
+      .finally(() => setLoading(false));
   }, [page, minHearts, sortParam])
 
   // Infinite scroll: load next page when near bottom
