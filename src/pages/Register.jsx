@@ -18,7 +18,11 @@ export default function Register() {
     const res = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form)
+      body: JSON.stringify({
+        username: form.username,
+        email: form.email,
+        password: form.password
+      })
     })
     const json = await res.json()
     if (!res.ok) {
@@ -30,6 +34,9 @@ export default function Register() {
       setFieldErrors(fieldErrs);
       setServerError(json.error || '');
     } else {
+      setForm({ username: '', email: '', password: '' });
+      setFieldErrors({});
+      setServerError('');
       navigate('/login')
     }
   }
