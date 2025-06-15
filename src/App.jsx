@@ -4,6 +4,7 @@ import Form from './components/Form.jsx'
 import ThoughtCard from './components/ThoughtCard.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
+import Liked from './pages/Liked.jsx'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -145,9 +146,10 @@ export const App = () => {
 
   return (
     <>
-      <nav className="flex justify-between mb-6">
+      <nav className="flex justify-between mb-6 p-4 bg-gray-100 border-b">
         <Link to="/" className="font-ivymode">Home</Link>
         <div className="space-x-4">
+          <Link to="/liked" className="font-ivymode">My Likes</Link>
           {token ? (
             <button
               onClick={() => {
@@ -171,6 +173,7 @@ export const App = () => {
         <Route path="/" element={<Feed />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/liked" element={<Liked />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
