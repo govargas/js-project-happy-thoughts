@@ -173,7 +173,19 @@ export const App = () => {
         <Route path="/" element={<Feed />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/liked" element={<Liked />} />
+        <Route
+          path="/liked"
+          element={
+            <Liked
+              thoughts={thoughts}
+              likedIds={likedIds}
+              handleLike={handleLike}
+              handleDelete={handleDelete}
+              handleUpdate={handleUpdate}
+              lastAddedId={lastAddedId}
+            />
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
