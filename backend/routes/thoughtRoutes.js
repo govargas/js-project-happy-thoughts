@@ -228,4 +228,33 @@ router.delete('/:id', auth, async (req, res) => {
   }
 })
 
+// 8) Like — atomically increment hearts
+router.post('/:id/like', auth, async (req, res) => {
+  try {
+    const updated = await Thought.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { hearts: 1 } },
+      { new: true }
+    );
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        response: null,
+        message: `Thought with ID '${req.params.id}' not found.`
+      });
+    }
+    res.status(200).json({
+      success: true,
+      response: updated,
+      message: 'Thought liked successfully.'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      response: error,
+      message: 'Failed to like thought.'
+    });
+  }
+});
+
 export default router
