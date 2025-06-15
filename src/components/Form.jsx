@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 
+// 1️⃣ Pull the API root from env
 const API_URL = import.meta.env.VITE_API_URL
 
 export default function Form({ onSubmitThought }) {
@@ -23,17 +24,23 @@ export default function Form({ onSubmitThought }) {
     }
 
     setSubmitting(true)
+    // 2️⃣ Grab the JWT token from localStorage
     const token = localStorage.getItem('token')
 
     fetch(`${API_URL}/thoughts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // 3️⃣ Send it as a Bearer token
         Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({ message: trimmed })
     })
       .then(res => {
+        if (res.status === 401) {
+          // not logged in or token expired
+          throw new Error('You must be logged in to post a thought.')
+        }
         if (!res.ok) {
           return res.json().then(data => {
             throw new Error(data.message || 'Failed to send')
@@ -54,7 +61,10 @@ export default function Form({ onSubmitThought }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-zinc-100 p-6 rounded-xs border shadow-sharp mb-8">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-zinc-100 p-6 rounded-xs border shadow-sharp mb-8"
+    >
       <label htmlFor="happy-input" className="block mb-2 text-lg font-ivymode">
         What’s making you happy right now?
       </label>
