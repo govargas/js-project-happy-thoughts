@@ -5,19 +5,22 @@ const { Schema, model } = mongoose
 const ThoughtSchema = new Schema({
   message: {
     type: String,
-    required: [true, 'Message is required'],
-    minlength: [5, 'Message must be at least 5 characters'],
-    maxlength: [140, 'Message must be at most 140 characters'],
-    trim: true
+    required: true,
+    minlength: 5,
+    maxlength: 140
   },
   hearts: {
     type: Number,
     default: 0
   },
-  createdAt: {
-    type: Date,
-    default: () => new Date()
+  // Link each thought to its creator
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   }
+}, {
+  timestamps: true
 })
 
 export default model('Thought', ThoughtSchema)
