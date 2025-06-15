@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
+import { Routes, Route, Navigate } from 'react-router';
 import Form from './components/Form.jsx'
 import ThoughtCard from './components/ThoughtCard.jsx'
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -108,7 +111,7 @@ export const App = () => {
       .catch(console.error);
   };
 
-  return (
+  const Feed = () => (
     <main className="max-w-lg w-full mx-auto p-4">
       {loading && <p className="text-center">Loading thoughts…</p>}
 
@@ -162,6 +165,15 @@ export const App = () => {
           />
         ))}
     </main>
+  )
+
+  return (
+    <Routes>
+      <Route path="/" element={<Feed />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 
