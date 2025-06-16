@@ -19,10 +19,13 @@ const ThoughtSchema = new Schema({
     ref: 'User',
     required: true
   },
-  likers: [{
-    type: Schema.Types.ObjectId,
-    ref: 'User'
-  }],
+  // Track exactly which users have liked this thought
+  likedBy: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  ]
 }, {
   timestamps: true
 })

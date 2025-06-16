@@ -231,7 +231,6 @@ router.delete('/:id', auth, async (req, res) => {
 // 8) Like — atomically increment hearts, but reject repeat likes
 router.post('/:id/like', auth, async (req, res) => {
   try {
-    // Find the thought
     const thought = await Thought.findById(req.params.id)
     if (!thought) {
       return res.status(404).json({
@@ -241,7 +240,7 @@ router.post('/:id/like', auth, async (req, res) => {
       })
     }
 
-    // Reject if this user already liked
+    // If user already in likers array, reject
     if (thought.likers.includes(req.userId)) {
       return res.status(400).json({
         success: false,
@@ -250,7 +249,7 @@ router.post('/:id/like', auth, async (req, res) => {
       })
     }
 
-    // Otherwise, increment and record
+    // Otherwise record the like
     thought.hearts += 1
     thought.likers.push(req.userId)
     const updated = await thought.save()

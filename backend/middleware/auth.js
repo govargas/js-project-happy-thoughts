@@ -9,20 +9,22 @@ if (!process.env.JWT_SECRET) {
   process.exit(1)
 }
 
-const auth = async (req, res, next) => {
+export default async function auth(req, res, next) {
   const authHeader = req.headers.authorization
   if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Missing or invalid Authorization header' })
   }
+
   const token = authHeader.split(' ')[1]
   try {
-    // Verify JWT and look up the user
-    const payload = jwt.verify(token, process.env.JWT_SECRET)
-    const user = await User.findById(payload.id)
+    // Verify token and extract user ID
+    const { id } = jwt.verify(token, process.env.JWT_SECRET)
+    // Fetch user from the database
+    const user = await User.findById(id)
     if (!user) {
       return res.status(401).json({ error: 'Invalid or expired token' })
     }
-    // Attach both full user and userId shortcut
+    // Attach user and userId for controllers
     req.user = user
     req.userId = user._id.toString()
     next()
@@ -30,5 +32,3 @@ const auth = async (req, res, next) => {
     return res.status(401).json({ error: 'Invalid or expired token' })
   }
 }
-
-export default auth
