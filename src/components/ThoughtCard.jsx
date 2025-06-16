@@ -30,7 +30,8 @@ export default function ThoughtCard({
         if (!res.ok) throw new Error('Could not register like')
         return res.json()
       })
-      .then(updatedThought => {
+      .then(json => {
+        const updatedThought = json.response
         onLike(updatedThought)
       })
       .catch(err => console.error('Like failed:', err))
@@ -47,7 +48,10 @@ export default function ThoughtCard({
         if (!res.ok) throw new Error('Delete failed')
         return res.json()
       })
-      .then(() => onDelete(id))
+      .then(json => {
+        const deletedId = json.response.deletedId
+        onDelete(deletedId)
+      })
       .catch(err => console.error('Delete failed:', err))
   }
 
@@ -73,7 +77,8 @@ export default function ThoughtCard({
         if (!res.ok) throw new Error('Update failed')
         return res.json()
       })
-      .then(updated => {
+      .then(json => {
+        const updated = json.response
         onUpdate(updated)
       })
       .catch(err => console.error('Update failed:', err))
