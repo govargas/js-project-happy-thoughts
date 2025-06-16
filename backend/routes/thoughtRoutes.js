@@ -110,7 +110,7 @@ router.post('/', auth, async (req, res) => {
     res.status(201).json({
       success: true,
       response: saved,
-      message: 'Thought created successfully.'
+      message: 'Thought created successfully'
     })
   } catch (error) {
     res.status(500).json({
@@ -228,33 +228,45 @@ router.delete('/:id', auth, async (req, res) => {
   }
 })
 
-// 8) Like — atomically increment hearts
+// 8) Like — atomically increment hearts, but reject repeat likes
 router.post('/:id/like', auth, async (req, res) => {
   try {
-    const updated = await Thought.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { hearts: 1 } },
-      { new: true }
-    );
-    if (!updated) {
+    // Find the thought
+    const thought = await Thought.findById(req.params.id)
+    if (!thought) {
       return res.status(404).json({
         success: false,
         response: null,
         message: `Thought with ID '${req.params.id}' not found.`
-      });
+      })
     }
+
+    // Reject if this user already liked
+    if (thought.likers.includes(req.userId)) {
+      return res.status(400).json({
+        success: false,
+        response: null,
+        message: 'You have already liked this thought.'
+      })
+    }
+
+    // Otherwise, increment and record
+    thought.hearts += 1
+    thought.likers.push(req.userId)
+    const updated = await thought.save()
+
     res.status(200).json({
       success: true,
       response: updated,
       message: 'Thought liked successfully.'
-    });
+    })
   } catch (error) {
     res.status(500).json({
       success: false,
       response: error,
       message: 'Failed to like thought.'
-    });
+    })
   }
-});
+})
 
 export default router

@@ -12,9 +12,12 @@ export const App = () => {
   const [thoughts, setThoughts] = useState([])
   const [loading, setLoading] = useState(true)
   const [lastAddedId, setLastAddedId] = useState(null)
+
+  // start with whatever's in localStorage
   const [likedIds, setLikedIds] = useState(() =>
     JSON.parse(localStorage.getItem('happy-likes') || '[]')
   )
+
   const [page, setPage] = useState(1)
   const [meta, setMeta] = useState({})
   const [minHearts, setMinHearts] = useState('')
@@ -22,7 +25,29 @@ export const App = () => {
 
   const token = localStorage.getItem('token')
 
-  // Fetch on mount and when filters change
+  // 0) Whenever we get a token (login or refresh), fetch /auth/me for likedIds
+  useEffect(() => {
+    if (!token) return
+
+    fetch(`${API_URL}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch user data')
+        return res.json()
+      })
+      .then(json => {
+        // assume backend responds { success: true, response: { likedIds: [...] } }
+        const serverLiked = json.response?.likedIds ?? []
+        setLikedIds(serverLiked)
+        localStorage.setItem('happy-likes', JSON.stringify(serverLiked))
+      })
+      .catch(err => {
+        console.error('Could not load likedIds from server:', err)
+      })
+  }, [token])
+
+  // 1) Fetch thoughts (with pagination, filtering, sorting)
   useEffect(() => {
     setLoading(true)
     let url = `${API_URL}/thoughts?page=${page}&limit=20`
@@ -43,27 +68,32 @@ export const App = () => {
       .finally(() => setLoading(false))
   }, [page, minHearts, sortParam])
 
-  // Infinite scroll
+  // 2) Infinite scroll
   useEffect(() => {
     const handleScroll = () => {
       if (loading || page >= meta.totalPages) return
       const bottomReached =
-        window.innerHeight + window.scrollY >= document.documentElement.offsetHeight - 100
+        window.innerHeight + window.scrollY >=
+        document.documentElement.offsetHeight - 100
       if (bottomReached) setPage(prev => prev + 1)
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [loading, page, meta.totalPages])
 
+  // 3) Create a new thought
   const addThought = newThought => {
     setThoughts(prev => [newThought, ...prev])
     setLastAddedId(newThought._id)
     setPage(1)
   }
 
+  // 4) Like handler
   const handleLike = updatedThought => {
     const id = updatedThought._id
+    // update that one thought
     setThoughts(prev => prev.map(t => (t._id === id ? updatedThought : t)))
+    // also record it locally
     if (!likedIds.includes(id)) {
       const next = [...likedIds, id]
       setLikedIds(next)
@@ -71,6 +101,7 @@ export const App = () => {
     }
   }
 
+  // 5) Delete handler
   const handleDelete = id => {
     fetch(`${API_URL}/thoughts/${id}`, {
       method: 'DELETE',
@@ -86,10 +117,12 @@ export const App = () => {
       .catch(console.error)
   }
 
+  // 6) Update handler
   const handleUpdate = updated => {
     setThoughts(prev => prev.map(t => (t._id === updated._id ? updated : t)))
   }
 
+  // The main feed view
   const Feed = () => (
     <main className="max-w-lg w-full mx-auto p-4">
       {loading && <p className="text-center">Loading thoughts…</p>}

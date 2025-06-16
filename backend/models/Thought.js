@@ -18,7 +18,11 @@ const ThoughtSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  }
+  },
+  likers: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }],
 }, {
   timestamps: true
 })
