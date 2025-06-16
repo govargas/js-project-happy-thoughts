@@ -235,21 +235,29 @@ router.delete('/:id', auth, async (req, res) => {
   }
 })
 
-// 8) Like — atomically increment hearts, but reject repeat likes
+// 8) Like — atomic increment & reject repeat likes
 router.post('/:id/like', auth, async (req, res) => {
   try {
-    // Load the thought by ID
-    const thought = await Thought.findById(req.params.id)
-    if (!thought) {
-      return res.status(404).json({
-        success: false,
-        response: null,
-        message: `Thought with ID '${req.params.id}' not found.`
-      })
-    }
+    // Try to increment only if this user hasn't already liked it
+    const updated = await Thought.findOneAndUpdate(
+      { _id: req.params.id, likedBy: { $ne: req.userId } },
+      { 
+        $inc: { hearts: 1 },
+        $push: { likedBy: req.userId }
+      },
+      { new: true }
+    )
 
-    // Reject if this user already liked it
-    if (thought.likedBy.includes(req.userId)) {
+    if (!updated) {
+      // Either it wasn't found, or the user already liked it
+      const maybe = await Thought.findById(req.params.id)
+      if (!maybe) {
+        return res.status(404).json({
+          success: false,
+          response: null,
+          message: `Thought with ID '${req.params.id}' not found.`
+        })
+      }
       return res.status(400).json({
         success: false,
         response: null,
@@ -257,16 +265,12 @@ router.post('/:id/like', auth, async (req, res) => {
       })
     }
 
-    // Otherwise, increment count and record the user
-    thought.hearts += 1
-    thought.likedBy.push(req.userId)
-    const updated = await thought.save()
-
     res.status(200).json({
       success: true,
       response: updated,
       message: 'Thought liked successfully.'
     })
+
   } catch (error) {
     console.error('Like endpoint error:', error)
     res.status(500).json({
