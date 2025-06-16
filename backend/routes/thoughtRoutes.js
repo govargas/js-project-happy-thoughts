@@ -240,8 +240,8 @@ router.post('/:id/like', auth, async (req, res) => {
       })
     }
 
-    // If user already in likers array, reject
-    if (thought.likers.includes(req.userId)) {
+    // If user already in likedBy array, reject
+    if (thought.likedBy.includes(req.userId)) {
       return res.status(400).json({
         success: false,
         response: null,
@@ -251,7 +251,7 @@ router.post('/:id/like', auth, async (req, res) => {
 
     // Otherwise record the like
     thought.hearts += 1
-    thought.likers.push(req.userId)
+    thought.likedBy.push(req.userId)
     const updated = await thought.save()
 
     res.status(200).json({
