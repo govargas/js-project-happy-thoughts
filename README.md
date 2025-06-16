@@ -78,4 +78,33 @@ Key features include:
 
 ---
 
-Enjoy exploring this project! Feedback and questions are always welcome.  
+## Backend Development with Node.js (Weeks 18–20)
+
+### Grade G (Pass) Requirements
+
+- [x] **API Documentation**: GET `/` returns JSON and list of all endpoints (Express List Endpoints)  
+- [x] **Read all thoughts**: GET `/thoughts` with pagination (`.skip()`, `.limit()`), filtering (`?minHearts=`), and sorting (`?sortBy=&order=`)  
+- [x] **Read single thought**: GET `/thoughts/:id` (404 if not found)  
+- [x] **Like a thought**: POST `/thoughts/:id/like` (atomic `$inc` hearts)  
+- [x] **Create thought (auth)**: POST `/thoughts` protected by JWT, sets `owner`  
+- [x] **Update thought (auth)**: PUT `/thoughts/:id` (only owner, validation, `runValidators`)  
+- [x] **Delete thought (auth)**: DELETE `/thoughts/:id` (only owner)  
+- [x] **Sign up**: POST `/auth/register` with `username`, `email`, `password` (express-validator + bcrypt)  
+- [x] **Log in**: POST `/auth/login` returns JWT (1h expiry)  
+- [x] **Mongoose models**: `User` & `Thought` schemas with built-in validation, virtuals, methods  
+- [x] **Input validation & errors**: Detailed error messages & correct status codes; unique `username`/`email`  
+- [x] **Error handling**: Central error-handler, per-route try/catch, status codes  
+- [x] **Password hashing**: `bcrypt` with salt rounds in Mongoose virtual setter  
+- [x] **Deployed backend**: Running on Render, connected to MongoDB Atlas  
+- [x] **Frontend integration**: All endpoints reflected in React, protected writes, UI error‐handling  
+
+### VG Stretch Goals
+
+- [x] **Filtering & sorting** on backend & UI (`?minHearts=`, sort dropdown)  
+- [x] **Pagination** & **infinite scroll** on frontend  
+- [x] **Field-level error display** on registration form  
+- [x] **Token persistence**: Store JWT in `localStorage`, send on all write requests  
+- [x] **“My Likes” view**: Frontend-only filter of liked thoughts (or GET `/thoughts?owner=` if preferred)  
+- [x] **Express Router** structure: `routes/`, `middleware/`, `models/` separation  
+
+---
