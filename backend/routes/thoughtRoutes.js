@@ -40,6 +40,7 @@ router.get('/', async (req, res) => {
       meta: { page, limit, totalCount, totalPages }
     })
   } catch (error) {
+    console.error(error)
     res.status(500).json({
       success: false,
       response: error,
@@ -69,6 +70,7 @@ router.get('/sort', async (req, res) => {
       message: 'Thoughts sorted successfully.'
     })
   } catch (error) {
+    console.error(error)
     res.status(500).json({
       success: false,
       response: error,
@@ -94,6 +96,7 @@ router.get('/:id', async (req, res) => {
       message: 'Thought fetched successfully.'
     })
   } catch (error) {
+    console.error(error)
     res.status(500).json({
       success: false,
       response: error,
@@ -110,9 +113,10 @@ router.post('/', auth, async (req, res) => {
     res.status(201).json({
       success: true,
       response: saved,
-      message: 'Thought created successfully'
+      message: 'Thought created successfully.'
     })
   } catch (error) {
+    console.error(error)
     res.status(500).json({
       success: false,
       response: error,
@@ -150,6 +154,7 @@ router.put('/:id', auth, async (req, res) => {
       message: 'Thought updated successfully.'
     })
   } catch (error) {
+    console.error(error)
     res.status(500).json({
       success: false,
       response: error,
@@ -187,6 +192,7 @@ router.patch('/:id', auth, async (req, res) => {
       message: 'Thought edited successfully.'
     })
   } catch (error) {
+    console.error(error)
     res.status(500).json({
       success: false,
       response: error,
@@ -220,6 +226,7 @@ router.delete('/:id', auth, async (req, res) => {
       message: 'Thought deleted successfully.'
     })
   } catch (error) {
+    console.error(error)
     res.status(500).json({
       success: false,
       response: error,
@@ -231,6 +238,7 @@ router.delete('/:id', auth, async (req, res) => {
 // 8) Like — atomically increment hearts, but reject repeat likes
 router.post('/:id/like', auth, async (req, res) => {
   try {
+    // Load the thought by ID
     const thought = await Thought.findById(req.params.id)
     if (!thought) {
       return res.status(404).json({
@@ -240,7 +248,7 @@ router.post('/:id/like', auth, async (req, res) => {
       })
     }
 
-    // If user already in likedBy array, reject
+    // Reject if this user already liked it
     if (thought.likedBy.includes(req.userId)) {
       return res.status(400).json({
         success: false,
@@ -249,7 +257,7 @@ router.post('/:id/like', auth, async (req, res) => {
       })
     }
 
-    // Otherwise record the like
+    // Otherwise, increment count and record the user
     thought.hearts += 1
     thought.likedBy.push(req.userId)
     const updated = await thought.save()
@@ -260,6 +268,7 @@ router.post('/:id/like', auth, async (req, res) => {
       message: 'Thought liked successfully.'
     })
   } catch (error) {
+    console.error('Like endpoint error:', error)
     res.status(500).json({
       success: false,
       response: error,
