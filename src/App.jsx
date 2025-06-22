@@ -125,7 +125,7 @@ export const App = () => {
   // The main feed view
   const Feed = () => (
     <main className="max-w-lg w-full mx-auto p-4">
-      {loading && <p className="text-center">Loading thoughts…</p>}
+      {loading && <p className="text-center">Loading thoughts, fetching from the server. This might take a while (≈50 s), please hang tight…</p>}
 
       <Form onSubmitThought={addThought} />
 
