@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 
-// 1️⃣ Pull the API root from env
 const API_URL = import.meta.env.VITE_API_URL
 
 export default function Form({ onSubmitThought }) {
@@ -15,30 +14,24 @@ export default function Form({ onSubmitThought }) {
 
   const handleSubmit = e => {
     e.preventDefault()
-
-    // Client‐side validation
     const trimmed = message.trim()
     if (trimmed.length < 5 || trimmed.length > 140) {
       setError('Message must be 5–140 characters.')
       return
     }
-
     setSubmitting(true)
-    // 2️⃣ Grab the JWT token from localStorage
     const token = localStorage.getItem('token')
 
     fetch(`${API_URL}/thoughts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // 3️⃣ Send it as a Bearer token
         Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({ message: trimmed })
     })
       .then(res => {
         if (res.status === 401) {
-          // not logged in or token expired
           throw new Error('You must be logged in to post a thought.')
         }
         if (!res.ok) {
@@ -48,8 +41,9 @@ export default function Form({ onSubmitThought }) {
         }
         return res.json()
       })
-      .then(newThought => {
-        onSubmitThought(newThought)
+      .then(json => {
+        // Immediately show the new thought card
+        onSubmitThought(json.response)
         setMessage('')
       })
       .catch(err => {

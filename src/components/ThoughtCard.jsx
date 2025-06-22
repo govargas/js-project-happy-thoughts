@@ -8,6 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL
 
 export default function ThoughtCard({
   id,
+  owner,
   message,
   hearts,
   createdAt,
@@ -15,11 +16,15 @@ export default function ThoughtCard({
   onDelete,
   onUpdate,
   isLiked,
-  isNew
+  isNew,
+  isOwner
 }) {
   const token = localStorage.getItem('token')
 
   const handleLike = () => {
+    if (!token) {
+      return window.alert('You must log in to like a thought.')
+    }
     if (isLiked) return
 
     fetch(`${API_URL}/thoughts/${id}/like`, {
@@ -30,10 +35,7 @@ export default function ThoughtCard({
         if (!res.ok) throw new Error('Could not register like')
         return res.json()
       })
-      .then(({ response }) => {
-        // response is the updated Thought document
-        onLike(response)
-      })
+      .then(({ response }) => onLike(response))
       .catch(err => console.error('Like failed:', err))
   }
 
@@ -48,21 +50,16 @@ export default function ThoughtCard({
         if (!res.ok) throw new Error('Delete failed')
         return res.json()
       })
-      .then(({ response }) => {
-        // response.deletedId contains the id of the deleted Thought
-        onDelete(response.deletedId)
-      })
+      .then(({ response }) => onDelete(response.deletedId))
       .catch(err => console.error('Delete failed:', err))
   }
 
   const handleEdit = () => {
     const newMsg = window.prompt('Edit your thought:', message)
     if (newMsg == null) return
-
     const trimmed = newMsg.trim()
     if (trimmed.length < 5 || trimmed.length > 140) {
-      window.alert('Thought must be between 5 and 140 characters.')
-      return
+      return window.alert('Thought must be between 5 and 140 characters.')
     }
 
     fetch(`${API_URL}/thoughts/${id}`, {
@@ -77,9 +74,7 @@ export default function ThoughtCard({
         if (!res.ok) throw new Error('Update failed')
         return res.json()
       })
-      .then(({ response }) => {
-        onUpdate(response)
-      })
+      .then(({ response }) => onUpdate(response))
       .catch(err => console.error('Update failed:', err))
   }
 
@@ -93,22 +88,24 @@ export default function ThoughtCard({
         <p className="text-gray-800 mb-4 flex-1 break-words whitespace-normal">
           {message}
         </p>
-        <div className="space-x-2">
-          <button
-            onClick={handleEdit}
-            aria-label="Edit thought"
-            className="text-blue-600 hover:underline text-sm"
-          >
-            Edit
-          </button>
-          <button
-            onClick={handleDelete}
-            aria-label="Delete thought"
-            className="text-red-600 hover:underline text-sm"
-          >
-            Delete
-          </button>
-        </div>
+        {isOwner && (
+          <div className="space-x-2">
+            <button
+              onClick={handleEdit}
+              aria-label="Edit thought"
+              className="text-blue-600 hover:underline text-sm"
+            >
+              Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              aria-label="Delete thought"
+              className="text-red-600 hover:underline text-sm"
+            >
+              Delete
+            </button>
+          </div>
+        )}
       </div>
       <div className="flex items-center justify-between text-sm text-gray-500 mt-2">
         <div className="flex items-center space-x-2">

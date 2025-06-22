@@ -13,7 +13,7 @@ export const App = () => {
   const [loading, setLoading] = useState(true)
   const [lastAddedId, setLastAddedId] = useState(null)
 
-  // start with whatever's in localStorage
+  // start with whatever's in localStorage for guests
   const [likedIds, setLikedIds] = useState(() =>
     JSON.parse(localStorage.getItem('happy-likes') || '[]')
   )
@@ -23,12 +23,16 @@ export const App = () => {
   const [minHearts, setMinHearts] = useState('')
   const [sortParam, setSortParam] = useState('createdAt_desc')
 
+  // track logged-in user
+  const [userId, setUserId] = useState(null)
   const token = localStorage.getItem('token')
 
-  // 0) Whenever we get a token (login or refresh), fetch /auth/me for likedIds
+  // 🔹 0) On token change, fetch /auth/me for userId + likedIds
   useEffect(() => {
-    if (!token) return
-
+    if (!token) {
+      setUserId(null)
+      return
+    }
     fetch(`${API_URL}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -37,17 +41,19 @@ export const App = () => {
         return res.json()
       })
       .then(json => {
-        // assume backend responds { success: true, response: { likedIds: [...] } }
-        const serverLiked = json.response?.likedIds ?? []
+        const me = json.response
+        setUserId(me.id)
+        const serverLiked = me.likedIds || []
         setLikedIds(serverLiked)
         localStorage.setItem('happy-likes', JSON.stringify(serverLiked))
       })
       .catch(err => {
-        console.error('Could not load likedIds from server:', err)
+        console.error('Could not load /auth/me:', err)
+        setUserId(null)
       })
   }, [token])
 
-  // 1) Fetch thoughts (with pagination, filtering, sorting)
+  // 🔹 1) Fetch thoughts
   useEffect(() => {
     setLoading(true)
     let url = `${API_URL}/thoughts?page=${page}&limit=20`
@@ -60,40 +66,39 @@ export const App = () => {
       .then(res => res.json())
       .then(data => {
         const items = data.response ?? data.thoughts ?? []
-        const newMeta = data.meta ?? {}
-        setMeta(newMeta)
+        setMeta(data.meta ?? {})
         setThoughts(prev => (page === 1 ? items : [...prev, ...items]))
       })
       .catch(err => console.error('Failed to load thoughts:', err))
       .finally(() => setLoading(false))
   }, [page, minHearts, sortParam])
 
-  // 2) Infinite scroll
+  // 🔹 2) Infinite scroll
   useEffect(() => {
     const handleScroll = () => {
       if (loading || page >= meta.totalPages) return
-      const bottomReached =
+      if (
         window.innerHeight + window.scrollY >=
         document.documentElement.offsetHeight - 100
-      if (bottomReached) setPage(prev => prev + 1)
+      ) {
+        setPage(prev => prev + 1)
+      }
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [loading, page, meta.totalPages])
 
-  // 3) Create a new thought
+  // 🔹 3) Add new thought to top
   const addThought = newThought => {
     setThoughts(prev => [newThought, ...prev])
     setLastAddedId(newThought._id)
     setPage(1)
   }
 
-  // 4) Like handler
-  const handleLike = updatedThought => {
-    const id = updatedThought._id
-    // update that one thought
-    setThoughts(prev => prev.map(t => (t._id === id ? updatedThought : t)))
-    // also record it locally
+  // 🔹 4) Like handler
+  const handleLike = updated => {
+    const id = updated._id
+    setThoughts(prev => prev.map(t => (t._id === id ? updated : t)))
     if (!likedIds.includes(id)) {
       const next = [...likedIds, id]
       setLikedIds(next)
@@ -101,7 +106,7 @@ export const App = () => {
     }
   }
 
-  // 5) Delete handler
+  // 🔹 5) Delete handler
   const handleDelete = id => {
     fetch(`${API_URL}/thoughts/${id}`, {
       method: 'DELETE',
@@ -109,23 +114,29 @@ export const App = () => {
     })
       .then(res => {
         if (!res.ok) throw new Error('Delete failed')
+      })
+      .then(() => {
         setThoughts(prev => prev.filter(t => t._id !== id))
         const nextLikes = likedIds.filter(l => l !== id)
         setLikedIds(nextLikes)
         localStorage.setItem('happy-likes', JSON.stringify(nextLikes))
       })
-      .catch(console.error)
+      .catch(err => console.error(err))
   }
 
-  // 6) Update handler
+  // 🔹 6) Update handler
   const handleUpdate = updated => {
     setThoughts(prev => prev.map(t => (t._id === updated._id ? updated : t)))
   }
 
-  // The main feed view
+  // The feed view
   const Feed = () => (
     <main className="max-w-lg w-full mx-auto p-4">
-      {loading && <p className="text-center">Loading thoughts, fetching from the server. This might take a while (≈50 s), please hang tight…</p>}
+      {loading && (
+        <p className="text-center">
+          Loading thoughts, fetching from the server. This might take a while (≈50 s), please hang tight…
+        </p>
+      )}
 
       <Form onSubmitThought={addThought} />
 
@@ -167,6 +178,7 @@ export const App = () => {
           <ThoughtCard
             key={th._id}
             id={th._id}
+            owner={th.owner}
             message={th.message}
             hearts={th.hearts}
             createdAt={th.createdAt}
@@ -175,6 +187,7 @@ export const App = () => {
             onUpdate={handleUpdate}
             isLiked={likedIds.includes(th._id)}
             isNew={th._id === lastAddedId}
+            isOwner={userId === th.owner}
           />
         ))}
     </main>
