@@ -9,17 +9,17 @@ import auth from '../middleware/auth.js'
 const router = Router()
 const { JWT_SECRET } = process.env
 
-// Register...
-// (your existing /register and /login unchanged)
+// Register...existing /register and /login unchanged)
 
-// 🔹 New: GET /auth/me — who am I? and what have I liked?
+// GET /auth/me — who am I? and what have I liked?
 router.get('/me', auth, async (req, res, next) => {
   try {
     // Fetch all thoughts this user has liked
     const likedDocs = await Thought.find({ likedBy: req.userId }).select('_id').lean()
     const likedIds = likedDocs.map(t => t._id.toString())
 
-    res.json({
+    // Fetch user details
+    res.json({ 
       success: true,
       response: {
         id: req.userId,
