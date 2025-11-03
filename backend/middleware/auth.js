@@ -18,9 +18,9 @@ export default async function auth(req, res, next) {
   const token = authHeader.split(' ')[1]
   try {
     // Verify token and extract user ID
-    const { id } = jwt.verify(token, process.env.JWT_SECRET)
+    const { userId } = jwt.verify(token, process.env.JWT_SECRET)
     // Fetch user from the database
-    const user = await User.findById(id)
+    const user = await User.findById(userId)
     if (!user) {
       return res.status(401).json({ error: 'Invalid or expired token' })
     }
